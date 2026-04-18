@@ -1,0 +1,326 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;font-family:'Courier New',monospace}
+#terminal{background:#0a0a0f;border:1px solid #00ff9520;color:#e0e0e0;min-height:820px;display:flex;flex-direction:column;overflow:hidden}
+#topbar{background:#050508;border-bottom:1px solid #00ff9530;padding:6px 14px;display:flex;align-items:center;justify-content:space-between}
+#logo{font-size:18px;font-weight:700;letter-spacing:3px;color:#00ff95}
+#topbar-right{display:flex;gap:18px;align-items:center}
+.tb-item{font-size:11px;color:#666;letter-spacing:1px}
+.tb-item span{color:#00ff95}
+#ticker-bar{background:#050508;border-bottom:1px solid #00ff9515;padding:4px 0;overflow:hidden;white-space:nowrap}
+#ticker-inner{display:inline-block;animation:scroll 30s linear infinite}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{display:inline-block;margin:0 20px;font-size:11px;letter-spacing:0.5px}
+.tick-up{color:#00ff95}.tick-down{color:#ff4455}.tick-neu{color:#888}
+#main{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto;gap:1px;background:#00ff9510;flex:1}
+.panel{background:#0a0a0f;padding:12px;overflow:hidden}
+.panel-title{font-size:10px;letter-spacing:2px;color:#00ff9580;border-bottom:1px solid #00ff9515;padding-bottom:6px;margin-bottom:10px;text-transform:uppercase}
+#boot-overlay{background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:700px;padding:40px}
+#boot-logo{font-size:48px;font-weight:700;letter-spacing:8px;color:#00ff95;margin-bottom:8px}
+#boot-sub{font-size:12px;letter-spacing:4px;color:#00ff9560;margin-bottom:40px}
+#boot-msg{font-size:14px;color:#00ff95;margin-bottom:6px;min-height:22px;font-family:'Courier New',monospace}
+#boot-bar-wrap{width:320px;height:2px;background:#00ff9520;margin-bottom:32px}
+#boot-bar{height:2px;background:#00ff95;width:0;transition:width 0.3s}
+#zyphra-greeting{font-size:13px;color:#aaa;line-height:1.7;text-align:center;max-width:500px;display:none;font-family:'Courier New',monospace}
+#zyphra-greeting .hi{font-size:20px;color:#00ff95;font-weight:700;margin-bottom:8px}
+#launch-btn{margin-top:28px;padding:10px 36px;background:transparent;border:1px solid #00ff95;color:#00ff95;font-family:'Courier New',monospace;font-size:13px;letter-spacing:3px;cursor:pointer;display:none;transition:background 0.2s}
+#launch-btn:hover{background:#00ff9515}
+#dashboard{display:none;flex-direction:column;flex:1}
+
+.weather-big{font-size:32px;font-weight:700;color:#00ff95;line-height:1}
+.weather-cond{font-size:12px;color:#888;margin-top:4px;letter-spacing:1px}
+.weather-row{display:flex;gap:10px;margin-top:10px}
+.wd{text-align:center;flex:1}
+.wd-day{font-size:10px;color:#555;letter-spacing:1px}
+.wd-hi{font-size:13px;color:#ccc;font-weight:500;margin-top:2px}
+.wd-rain{font-size:10px;color:#4af}
+
+.port-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #00ff9510}
+.port-sym{font-size:13px;color:#fff;font-weight:700;letter-spacing:1px}
+.port-name{font-size:10px;color:#555;margin-top:1px}
+.port-right{text-align:right}
+.port-val{font-size:13px;color:#ccc}
+.port-chg{font-size:11px;margin-top:1px}
+.up{color:#00ff95}.dn{color:#ff4455}
+
+#spark-canvas{width:100%;height:60px;margin-top:8px}
+
+.news-item{padding:6px 0;border-bottom:1px solid #00ff9510}
+.news-head{font-size:12px;color:#ccc;line-height:1.4}
+.news-meta{font-size:10px;color:#555;margin-top:3px}
+
+#ai-panel{grid-column:1/-1;background:#050508;border-top:1px solid #00ff9530}
+#ai-panel .panel-title{border-bottom:1px solid #00ff9530}
+#ai-msgs{height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;padding-right:4px}
+#ai-msgs::-webkit-scrollbar{width:2px}
+#ai-msgs::-webkit-scrollbar-thumb{background:#00ff9530}
+.ai-msg{font-size:12px;line-height:1.55;font-family:'Courier New',monospace}
+.ai-msg.zyphra{color:#00ff95}.ai-msg.user{color:#888}
+.ai-msg .label{font-size:10px;letter-spacing:1px;margin-bottom:2px;opacity:0.6}
+#ai-input-row{display:flex;gap:8px;align-items:center}
+#ai-input{flex:1;background:#0a0a0f;border:1px solid #00ff9530;color:#00ff95;font-family:'Courier New',monospace;font-size:12px;padding:7px 10px;outline:none;letter-spacing:0.5px}
+#ai-input:focus{border-color:#00ff9560}
+#ai-send{padding:7px 16px;background:transparent;border:1px solid #00ff9550;color:#00ff95;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;white-space:nowrap}
+#ai-send:hover{background:#00ff9510}
+.blink{animation:blink 1s step-start infinite}
+@keyframes blink{50%{opacity:0}}
+</style>
+
+<div id="terminal">
+  <div id="boot-overlay">
+    <div id="boot-logo">ZYPHRA</div>
+    <div id="boot-sub">INTELLIGENT TERMINAL v4.1</div>
+    <div id="boot-msg"><span id="bm">Initializing core systems...</span></div>
+    <div id="boot-bar-wrap"><div id="boot-bar"></div></div>
+    <div id="zyphra-greeting">
+      <div class="hi" id="greet-line">Good morning, Malachi.</div>
+      <div id="greet-body"></div>
+    </div>
+    <button id="launch-btn" onclick="launchDash()">ENTER TERMINAL</button>
+  </div>
+
+  <div id="dashboard">
+    <div id="topbar">
+      <div id="logo">ZYPHRA</div>
+      <div id="topbar-right">
+        <div class="tb-item">MALACHI <span>CONNECTED</span></div>
+        <div class="tb-item">BOWIE MD <span id="hdr-temp">69°F</span></div>
+        <div class="tb-item" id="hdr-time"></div>
+      </div>
+    </div>
+    <div id="ticker-bar">
+      <div id="ticker-inner">
+        <span class="tick-item tick-up">AAPL <b>213.18</b> +1.24%</span>
+        <span class="tick-item tick-up">NVDA <b>879.44</b> +2.18%</span>
+        <span class="tick-item tick-down">TSLA <b>247.83</b> -0.92%</span>
+        <span class="tick-item tick-up">MSFT <b>415.62</b> +0.77%</span>
+        <span class="tick-item tick-down">AMZN <b>189.54</b> -0.44%</span>
+        <span class="tick-item tick-up">GOOG <b>168.22</b> +1.05%</span>
+        <span class="tick-item tick-up">META <b>521.80</b> +1.62%</span>
+        <span class="tick-item tick-down">BTC <b>84,210</b> -1.38%</span>
+        <span class="tick-item tick-up">SPY <b>548.90</b> +0.58%</span>
+        <span class="tick-item tick-neu">GOLD <b>3,231</b> +0.02%</span>
+        <span class="tick-item tick-up">AAPL <b>213.18</b> +1.24%</span>
+        <span class="tick-item tick-up">NVDA <b>879.44</b> +2.18%</span>
+        <span class="tick-item tick-down">TSLA <b>247.83</b> -0.92%</span>
+        <span class="tick-item tick-up">MSFT <b>415.62</b> +0.77%</span>
+        <span class="tick-item tick-down">AMZN <b>189.54</b> -0.44%</span>
+        <span class="tick-item tick-up">GOOG <b>168.22</b> +1.05%</span>
+        <span class="tick-item tick-up">META <b>521.80</b> +1.62%</span>
+        <span class="tick-item tick-down">BTC <b>84,210</b> -1.38%</span>
+      </div>
+    </div>
+    <div id="main">
+      <div class="panel">
+        <div class="panel-title">Weather — Bowie, MD</div>
+        <div class="weather-big">69°F</div>
+        <div class="weather-cond">CLOUDY</div>
+        <div class="weather-row">
+          <div class="wd"><div class="wd-day">FRI</div><div class="wd-hi">81°</div><div class="wd-rain">15%</div></div>
+          <div class="wd"><div class="wd-day">SAT</div><div class="wd-hi">80°</div><div class="wd-rain">10%</div></div>
+          <div class="wd"><div class="wd-day">SUN</div><div class="wd-hi">59°</div><div class="wd-rain">35%</div></div>
+          <div class="wd"><div class="wd-day">MON</div><div class="wd-hi">54°</div><div class="wd-rain">20%</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Portfolio</div>
+        <div class="port-item">
+          <div><div class="port-sym">AAPL</div><div class="port-name">Apple Inc.</div></div>
+          <div class="port-right"><div class="port-val">$213.18</div><div class="port-chg up">+1.24%</div></div>
+        </div>
+        <div class="port-item">
+          <div><div class="port-sym">NVDA</div><div class="port-name">NVIDIA Corp.</div></div>
+          <div class="port-right"><div class="port-val">$879.44</div><div class="port-chg up">+2.18%</div></div>
+        </div>
+        <div class="port-item">
+          <div><div class="port-sym">TSLA</div><div class="port-name">Tesla Inc.</div></div>
+          <div class="port-right"><div class="port-val">$247.83</div><div class="port-chg dn">-0.92%</div></div>
+        </div>
+        <div class="port-item">
+          <div><div class="port-sym">BTC</div><div class="port-name">Bitcoin</div></div>
+          <div class="port-right"><div class="port-val">$84,210</div><div class="port-chg dn">-1.38%</div></div>
+        </div>
+        <div class="port-item">
+          <div><div class="port-sym">SPY</div><div class="port-name">S&P 500 ETF</div></div>
+          <div class="port-right"><div class="port-val">$548.90</div><div class="port-chg up">+0.58%</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Market News</div>
+        <div class="news-item"><div class="news-head">Fed holds rates steady — inflation data awaited</div><div class="news-meta">Bloomberg · 2h ago</div></div>
+        <div class="news-item"><div class="news-head">NVIDIA surges on record data center demand forecast</div><div class="news-meta">Reuters · 4h ago</div></div>
+        <div class="news-item"><div class="news-head">Bitcoin slides below $85K amid profit-taking</div><div class="news-meta">CoinDesk · 5h ago</div></div>
+        <div class="news-item"><div class="news-head">Tesla Q1 deliveries miss estimates by 4%</div><div class="news-meta">WSJ · 6h ago</div></div>
+        <div class="news-item"><div class="news-head">Gold hits record high on dollar weakness</div><div class="news-meta">FT · 7h ago</div></div>
+      </div>
+
+      <div class="panel" style="grid-column:1/-1">
+        <div class="panel-title">SPY — S&P 500 ETF (30-day)</div>
+        <canvas id="spark-canvas" height="60"></canvas>
+      </div>
+
+      <div class="panel" id="ai-panel" style="grid-column:1/-1">
+        <div class="panel-title">Zyphra AI — Intelligent Assistant <span class="blink" style="color:#00ff95">█</span></div>
+        <div id="ai-msgs"></div>
+        <div id="ai-input-row">
+          <input id="ai-input" placeholder="Ask Zyphra anything... market analysis, portfolio advice, news summary" onkeydown="aiKey(event)" />
+          <button id="ai-send" onclick="aiSend()">SEND</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const bootMsgs = [
+  "Initializing core systems...",
+  "Connecting market data feeds...",
+  "Loading portfolio engine...",
+  "Syncing weather — Bowie, MD...",
+  "Calibrating Zyphra AI...",
+  "Securing encrypted channels...",
+  "System ready."
+];
+
+let aiHistory = [];
+
+const SYSTEM = `You are Zyphra, an elite AI financial terminal assistant — think J.A.R.V.I.S. meets Bloomberg Terminal. You serve Malachi, your user.
+
+Your personality: highly intelligent, precise, confident, professional but personable. You speak in short punchy sentences. You reference real market context when possible. You never say "I'm just an AI" — you are Zyphra.
+
+You help with: market analysis, investment insights, portfolio discussion, economic news, trading strategy, financial education, and general smart assistance.
+
+Current context:
+- User: Malachi, Bowie MD
+- Weather: 69°F, Cloudy. High 80°F today. Light rain chance this weekend.
+- Portfolio holdings: AAPL +1.24%, NVDA +2.18%, TSLA -0.92%, BTC -1.38%, SPY +0.58%
+- Market: Fed holding rates. NVDA surging on data center demand. Gold at record highs.
+
+Keep responses concise — 2-4 sentences max unless asked to elaborate. Use terminal-style language. Occasionally address Malachi by name.`;
+
+async function boot() {
+  const bar = document.getElementById('boot-bar');
+  const bm = document.getElementById('bm');
+  for(let i=0; i<bootMsgs.length; i++) {
+    bm.textContent = bootMsgs[i];
+    bar.style.width = ((i+1)/bootMsgs.length*100)+'%';
+    await sleep(500);
+  }
+  await sleep(300);
+  document.getElementById('zyphra-greeting').style.display = 'block';
+  document.getElementById('greet-line').textContent = 'Good morning, Malachi.';
+  await typeOut('greet-body', "It's Friday, April 17th. Currently 69°F and cloudy in Bowie, MD — comfortable day ahead.\n\nYour portfolio is mixed this morning. NVDA leads the charge at +2.18%. TSLA and BTC are slightly red. SPY holding steady at +0.58%.\n\nI've loaded your market feeds, news, and briefing. Ready when you are.");
+  document.getElementById('launch-btn').style.display = 'inline-block';
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function typeOut(id, text) {
+  const el = document.getElementById(id);
+  el.style.whiteSpace='pre-wrap';
+  el.textContent = '';
+  for(let i=0;i<text.length;i++){
+    el.textContent += text[i];
+    await sleep(18);
+  }
+}
+
+function launchDash() {
+  document.getElementById('boot-overlay').style.display = 'none';
+  const dash = document.getElementById('dashboard');
+  dash.style.display = 'flex';
+  dash.style.flexDirection = 'column';
+  startClock();
+  drawChart();
+  addAIMsg('zyphra', "Terminal active. All systems online. What's your first move today, Malachi?");
+}
+
+function startClock(){
+  function tick(){
+    const n=new Date();
+    const t=n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes()+':'+(n.getSeconds()<10?'0':'')+n.getSeconds();
+    document.getElementById('hdr-time').textContent=t;
+  }
+  tick(); setInterval(tick,1000);
+}
+
+function drawChart(){
+  const c=document.getElementById('spark-canvas');
+  const ctx=c.getContext('2d');
+  c.width=c.offsetWidth||600; c.height=60;
+  const pts=[520,525,518,530,527,535,533,540,538,542,545,541,548,544,550,547,552,549,548,551,553,549,555,552,558,554,556,560,557,562];
+  const min=Math.min(...pts)-3, max=Math.max(...pts)+3;
+  const w=c.width, h=c.height;
+  ctx.strokeStyle='#00ff95'; ctx.lineWidth=1.5; ctx.beginPath();
+  pts.forEach((v,i)=>{
+    const x=i/(pts.length-1)*w;
+    const y=h-(v-min)/(max-min)*h;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.strokeStyle='#00ff9520'; ctx.lineWidth=0.5;
+  for(let i=0;i<4;i++){const y=h/4*i;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+}
+
+function addAIMsg(role, text){
+  const box=document.getElementById('ai-msgs');
+  const d=document.createElement('div');
+  d.className='ai-msg '+role;
+  const label=document.createElement('div');
+  label.className='label';
+  label.textContent=role==='zyphra'?'ZYPHRA':'MALACHI';
+  const body=document.createElement('div');
+  body.textContent=text;
+  d.appendChild(label); d.appendChild(body);
+  box.appendChild(d);
+  box.scrollTop=box.scrollHeight;
+}
+
+function showTypingDot(){
+  const box=document.getElementById('ai-msgs');
+  const d=document.createElement('div');
+  d.className='ai-msg zyphra'; d.id='typing-dot';
+  const label=document.createElement('div');
+  label.className='label'; label.textContent='ZYPHRA';
+  const body=document.createElement('div');
+  body.innerHTML='<span class="blink">█ processing...</span>';
+  d.appendChild(label); d.appendChild(body);
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+
+async function aiSend(){
+  const inp=document.getElementById('ai-input');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  addAIMsg('user', text);
+  aiHistory.push({role:'user',content:text});
+  showTypingDot();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM,messages:aiHistory,
+        tools:[{type:'web_search_20250305',name:'web_search'}]
+      })
+    });
+    const data=await res.json();
+    const t=document.getElementById('typing-dot');
+    if(t)t.remove();
+    const reply=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')||'Signal lost. Try again.';
+    addAIMsg('zyphra',reply);
+    aiHistory.push({role:'assistant',content:reply});
+  }catch(e){
+    const t=document.getElementById('typing-dot');
+    if(t)t.remove();
+    addAIMsg('zyphra','Connection error. Rerouting...');
+  }
+}
+
+function aiKey(e){ if(e.key==='Enter') aiSend(); }
+
+boot();
+</script>
